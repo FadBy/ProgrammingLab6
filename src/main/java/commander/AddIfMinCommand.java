@@ -1,22 +1,20 @@
 package commander;
 
-import application.Application;
+import application.Environment;
+import exceptions.IncorrectCommandException;
 import file_data.Errput;
 import file_data.Input;
 import file_data.Output;
 
 import java.util.List;
 
-public class ExitCommand implements Command {
-    private final Application application;
-
-    public ExitCommand(Application application) {
-        this.application = application;
+public class AddIfMinCommand implements Command {
+    public AddIfMinCommand() {
     }
 
     @Override
     public String getName() {
-        return "exit";
+        return "add_if_min";
     }
 
     @Override
@@ -25,7 +23,7 @@ public class ExitCommand implements Command {
     }
 
     @Override
-    public void execute(List<String> args, Input input, Output output, Errput errput) {
-        application.exit();
+    public void execute(List<String> args, Input input, Output output, Errput errput) throws IncorrectCommandException {
+
     }
 }

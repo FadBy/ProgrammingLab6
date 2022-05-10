@@ -2,31 +2,30 @@ package application;
 
 import exceptions.ApplicationRuntimeException;
 
-import java.util.regex.Pattern;
+import java.util.Comparator;
 
 public enum FieldType {
-    String("String"),
-    Double("Double"),
-    Long("Long"),
-    Integer("Integer");
+    String(),
+    Double(),
+    Long(),
+    Integer();
 
-    private FieldType(String value) {
+    FieldType() {
     }
 
-    private static final Pattern doublePattern = Pattern.compile("-?\\d+(\\.\\d+)?");
-    private static final Pattern integerPattern = Pattern.compile("-?\\d+");
-
     public String checkTypeMatch(String value) {
+        if (value == null) {
+            return "";
+        }
         boolean check;
         switch (this) {
             case String: check = true; break;
-            case Double: check = doublePattern.matcher(value).matches(); break;
-            case Long:
-            case Integer: check = integerPattern.matcher(value).matches(); break;
+            case Double: check = true; try { java.lang.Double.parseDouble(value); } catch (NumberFormatException e) { check = false; } break;
+            case Long: check = true; try { java.lang.Long.parseLong(value); } catch (NumberFormatException e) { check = false; } break;
             default: throw new ApplicationRuntimeException("This fieldType wasn't considered");
         }
-        if (check) {
-            return "must be " + value;
+        if (!check) {
+            return "must be " + this.name();
         }
         return "";
     }

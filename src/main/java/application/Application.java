@@ -6,19 +6,17 @@ import exceptions.ApplicationRuntimeException;
 import file_data.Console;
 import file_data.FileData;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Application {
-//    private final ProductCollection productCollection = new ProductCollection();
     private final FileData fileData = new FileData();
     private final Console console = new Console();
     private final Environment environment = new Environment();
 //    private final JsonData collectionData = new JsonData("", productCollection);
     private final Commander commander = new Commander(console, console, console);
     private final CommandHistory history = new CommandHistory();
-//    private final Validator validator = new Validator();
     private boolean isRun = false;
     private boolean exitState = false;
 
@@ -33,12 +31,14 @@ public class Application {
 
     private void start() {
         List<Command> commands = new ArrayList<>(Arrays.asList(
-                new HelpCommand(),
+                new HelpCommand(commander),
                 new ExitCommand(this),
-                new AddConsoleCommand(environment, console)
-//                new InfoCommand(productCollection),
-//                new RemoveByIdCommand(productCollection),
-//                new ShowCommand(productCollection)
+                new AddCommand(environment),
+                new InfoCommand(environment),
+                new ShowCommand(environment),
+                new RemoveByIdCommand(environment),
+                new ClearCommand(environment),
+                new UpdateByIdCommand()
         ));
         commander.setCommands(commands);
 
@@ -50,19 +50,23 @@ public class Application {
         Label isMoreThanZero = new MonoLabel("must be more than zero", x -> Double.parseDouble(x) > 0);
         Label isMaxSix = new MonoLabel("must be more than six", x -> Double.parseDouble(x) <= 6);
 
-        FieldTemplate id = new FieldTemplate("id", FieldType.Long, Arrays.asList(isNotNull, isIdProductUnique, isMoreThanZero));
+        FieldTemplate x = new FieldTemplate("x", FieldType.Long, Arrays.asList(isNotNull, isMaxSix));
+        FieldTemplate y = new FieldTemplate("y", FieldType.Long, Arrays.asList(isNotNull));
 
-        TableTemplate productTemplate = new TableTemplate("Product", Arrays.asList(id));
+        TableTemplate coordinateTemplate = new TableTemplate("Coordinates", Arrays.asList(x, y));
 
-        environment.setTables(Arrays.asList(productTemplate));
+        FieldTemplate id = new FieldTemplate("id", FieldType.Long, Arrays.asList(isNotNull, isIdProductUnique, isMoreThanZero), () -> environment.getAutoIncrement("Product", "id"));
+        FieldTemplate coordinates = new FieldTemplate("coordinates", FieldType.Long, Arrays.asList(isNotNull), coordinateTemplate);
 
+        TableTemplate productTemplate = new TableTemplate("Product", Arrays.asList(id, coordinates));
+
+        environment.setTables(LocalDateTime.now(), "Product", Arrays.asList(productTemplate, coordinateTemplate));
     }
 
     private void programCycle() {
         while (!exitState) {
             try {
-                console.nextLine("Введите команду");
-                List<String> result = commander.parseCommand(console.nextLine());
+                List<String> result = commander.parseCommand(console.nextLine("Введите команду: "));
                 commander.executeCommand(result.get(0), result.stream().skip(1).collect(Collectors.toList()));
                 history.addCommand(result.get(0));
             } catch(ApplicationException e) {
@@ -74,5 +78,4 @@ public class Application {
     public void exit() {
         exitState = true;
     }
-
 }

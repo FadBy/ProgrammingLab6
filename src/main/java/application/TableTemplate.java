@@ -6,13 +6,16 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class TableTemplate {
-    private final Map<String, FieldTemplate> fields;
+    private final Map<String, FieldTemplate> fields = new LinkedHashMap<>();
     public final String name;
 
     public TableTemplate(String name, List<FieldTemplate> fields) {
         this.name = name;
-        this.fields = fields.stream().collect(Collectors.toMap(x -> x.name, x -> x));
-//        relatives = fields.stream().map(x -> x.relativeTable).filter(Objects::nonNull).collect(Collectors.toList());
+        this.fields.putAll(fields.stream().collect(Collectors.toMap(x -> x.name, x -> x)));
+    }
+
+    public FieldTemplate getField(String fieldName) {
+        return fields.get(fieldName);
     }
 
     public String checkValidity(String fieldName, String value) {
@@ -39,36 +42,5 @@ public class TableTemplate {
 
     public List<FieldTemplate> getFields() {
         return new ArrayList<>(fields.values());
-    }
-
-    public class RowBuilder {
-        private final Map<String, String> fields = new HashMap<>();
-
-        public RowBuilder() {
-            for (FieldTemplate temp : TableTemplate.this.getFields()) {
-                fields.put(temp.name, null);
-            }
-        }
-
-        public TableTemplate getTableTemplate() {
-            return TableTemplate.this;
-        }
-
-        public String setField(String fieldName, String value) {
-            String message = checkValidity(fieldName, value);
-            if (message.isEmpty()) {
-                fields.put(fieldName, value);
-            }
-            return message;
-        }
-
-        Table.Row build(Environment environment) {
-            Table table = environment.getTable(TableTemplate.this);
-            String message = checkValidityAll(fields);
-            if (!message.isEmpty()) {
-                return null;
-            }
-            return table.new Row(fields);
-        }
     }
 }

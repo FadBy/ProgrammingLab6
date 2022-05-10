@@ -1,6 +1,7 @@
 package file_data;
 
 import java.util.Collections;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 public class Console implements Input, Output, Errput {
@@ -8,7 +9,12 @@ public class Console implements Input, Output, Errput {
 
     @Override
     public void printException(Exception exception) {
-        System.out.println("Error: " + exception.getMessage());
+        printException(exception.getMessage());
+    }
+
+    @Override
+    public void printException(String message) {
+        System.out.println("Error: " + message);
     }
 
     @Override
@@ -18,12 +24,23 @@ public class Console implements Input, Output, Errput {
 
     @Override
     public String nextLine() {
-        return scanner.nextLine();
+        String text = "";
+        try {
+            text = scanner.nextLine();
+        } catch (NoSuchElementException e) {
+            System.out.println("Program force quit");
+            System.exit(0);
+        }
+        text = text.trim();
+        if (text.isEmpty()) {
+            text = null;
+        }
+        return text;
     }
 
     public String nextLine(String inputRequest) {
         System.out.print(inputRequest);
-        return scanner.nextLine();
+        return nextLine();
     }
 
     @Override
@@ -31,7 +48,8 @@ public class Console implements Input, Output, Errput {
         System.out.println(line);
     }
 
-    public void requestInput(String request) {
-        System.out.print(request);
+    @Override
+    public void printRequest(String line) {
+        System.out.print(line);
     }
 }

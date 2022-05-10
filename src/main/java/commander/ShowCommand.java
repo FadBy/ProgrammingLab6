@@ -7,7 +7,7 @@ import file_data.Output;
 
 import java.util.List;
 
-public class ShowCommand extends Command {
+public class ShowCommand implements Command {
     private final Environment environment;
 
     public ShowCommand(Environment environment) {
@@ -20,7 +20,12 @@ public class ShowCommand extends Command {
     }
 
     @Override
-    public void execute(List<String> args, Input input, Output output, Errput errput) {
+    public String getDescription() {
+        return "вывести в стандартный поток вывода все элементы коллекции в строковом представлении";
+    }
 
+    @Override
+    public void execute(List<String> args, Input input, Output output, Errput errput) {
+        output.printResult(environment.toJson().toString());
     }
 }

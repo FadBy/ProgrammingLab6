@@ -9,7 +9,7 @@ import file_data.Output;
 import java.io.IOException;
 import java.util.List;
 
-public class SaveCommand extends Command {
+public class SaveCommand implements Command {
     private JsonData jsonData;
 
     public SaveCommand(JsonData jsonData) {
@@ -19,6 +19,11 @@ public class SaveCommand extends Command {
     @Override
     public String getName() {
         return "save";
+    }
+
+    @Override
+    public String getDescription() {
+        return "сохранить коллекцию в файл";
     }
 
     @Override
