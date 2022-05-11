@@ -3,6 +3,7 @@ package application;
 import com.google.gson.JsonObject;
 import exceptions.ApplicationRuntimeException;
 
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -105,14 +106,20 @@ class Table implements Iterable<Long> {
             return json;
         }
 
-        public static class Builder implements Iterable<String> {
+        public static class Builder implements Iterable<FieldTemplate> {
             private final Map<String, String> fields = new HashMap<>();
             private final TableTemplate template;
 
             public Builder(TableTemplate template) {
                 this.template = template;
                 for (FieldTemplate field : template.getFields()) {
-                    fields.put(field.name, null);
+                    if (field.relativeTable != null) {
+                        fields.put(field.name, "-1");
+                    } else if (field.fieldGeneration != null) {
+                        fields.put(field.name, field.fieldGeneration.get());
+                    }else {
+                        fields.put(field.name, null);
+                    }
                 }
             }
 
@@ -140,6 +147,12 @@ class Table implements Iterable<Long> {
                 if (!message.isEmpty()) {
                     throw new ApplicationRuntimeException("Attempt to build invalid row");
                 }
+                for (String fieldName : fields.keySet()) {
+                    FieldTemplate field = template.getField(fieldName);
+                    if (field.fieldGeneration != null) {
+                        setField(fieldName, field.fieldGeneration.get());
+                    }
+                }
                 return new Table.Row(fields);
             }
 
@@ -148,8 +161,8 @@ class Table implements Iterable<Long> {
             }
 
             @Override
-            public Iterator<String> iterator() {
-                return template.getFields().stream().map(x -> x.name).iterator();
+            public Iterator<FieldTemplate> iterator() {
+                return template.getFields().iterator();
             }
         }
     }

@@ -6,6 +6,7 @@ import exceptions.ApplicationRuntimeException;
 import file_data.Console;
 import file_data.FileData;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -15,7 +16,7 @@ public class Application {
     private final Console console = new Console();
     private final Environment environment = new Environment();
 //    private final JsonData collectionData = new JsonData("", productCollection);
-    private final Commander commander = new Commander(console, console, console);
+    private final Commander commander = new Commander(console, console);
     private final CommandHistory history = new CommandHistory();
     private boolean isRun = false;
     private boolean exitState = false;
@@ -38,7 +39,11 @@ public class Application {
                 new ShowCommand(environment),
                 new RemoveByIdCommand(environment),
                 new ClearCommand(environment),
-                new UpdateByIdCommand()
+                new UpdateByIdCommand(environment),
+                new AddIfMinCommand(environment),
+                new RemoveLowerCommand(environment),
+                new HistoryCommand(history),
+                new ExecuteScriptCommand(commander, fileData)
         ));
         commander.setCommands(commands);
 
@@ -60,16 +65,16 @@ public class Application {
 
         TableTemplate productTemplate = new TableTemplate("Product", Arrays.asList(id, coordinates));
 
-        environment.setTables(LocalDateTime.now(), "Product", Arrays.asList(productTemplate, coordinateTemplate));
+        environment.setTables(LocalDateTime.now(), Comparator.comparing(z -> Long.parseLong(z.getValue("coordinates.x"))), "Product", Arrays.asList(productTemplate, coordinateTemplate));
     }
 
     private void programCycle() {
         while (!exitState) {
             try {
                 List<String> result = commander.parseCommand(console.nextLine("Введите команду: "));
-                commander.executeCommand(result.get(0), result.stream().skip(1).collect(Collectors.toList()));
+                commander.executeCommand(result);
                 history.addCommand(result.get(0));
-            } catch(ApplicationException e) {
+            } catch(ApplicationException| IOException e) {
                 console.printException(e);
             }
         }

@@ -13,23 +13,24 @@ import java.util.stream.Stream;
 public class Environment implements Iterable<Long> {
     private final Map<TableTemplate, Table> tables = new LinkedHashMap<>();
     private final Map<String, TableTemplate> templates = new LinkedHashMap<>();
-    private final Map<Long, Row> rows = new LinkedHashMap<>();
+    private final Map<Long, Row> rows = new TreeMap<>();
+    private Comparator<Row> comparator;
 
     private long nextId = 0;
     public String rootTable;
     private LocalDateTime creationDate;
-    private int size = 0;
 
     public int getSize() {
-        return size;
+        return rows.size();
     }
 
     private long getNextId() {
         return nextId++;
     }
 
-    public void setTables(LocalDateTime creationDate, String rootTable, List<TableTemplate> templates) {
+    public void setTables(LocalDateTime creationDate, Comparator<Row> comparator, String rootTable, List<TableTemplate> templates) {
         this.creationDate = creationDate;
+        this.comparator = comparator;
         this.tables.clear();
         this.tables.putAll(templates.stream().collect(Collectors.toMap(x -> x, x -> new Table())));
         this.templates.clear();
@@ -50,7 +51,11 @@ public class Environment implements Iterable<Long> {
         if (!builder.checkBuilderValidity().isEmpty()) {
             throw new ApplicationRuntimeException("Attempt to add invalid row");
         }
-        rows.put(id, builder.build());
+        Row row = builder.build(id, comparator);
+        for (Table.Row.Builder tableBuilder : builder.builders.values()) {
+            getTable(tableBuilder.getTableName()).addRow(id, row.rows.get(tableBuilder.getTableName()));
+        }
+        rows.put(id, row);
     }
 
     private Table getTable(String tableName) {
@@ -61,9 +66,14 @@ public class Environment implements Iterable<Long> {
         return templates.get(tableName);
     }
 
-    public void addRow(Row.Builder builder) {
+    public Row getRow(long id) {
+        return rows.get(id);
+    }
+
+    public long addRow(Row.Builder builder) {
         long id = getNextId();
         addRow(id, builder);
+        return id;
     }
 
     public void removeById(long id) {
@@ -71,7 +81,6 @@ public class Environment implements Iterable<Long> {
         if (!getTable(rootTable).containsId(id)) {
             throw new ApplicationRuntimeException(id + "wasn't found in environment");
         }
-        size--;
         for (Table table : tables.values()) {
             table.removeRow(id);
         }
@@ -95,7 +104,7 @@ public class Environment implements Iterable<Long> {
     public String getInfo() {
         return "Тип: HashSet\n" +
                 "Дата инициализации: " + creationDate.toString() + "\n" +
-                "Колво элементов: " + size;
+                "Колво элементов: " + getSize();
     }
 
     public String getAutoIncrement(String tableName, String fieldName) {
@@ -133,11 +142,13 @@ public class Environment implements Iterable<Long> {
         return rows.keySet().iterator();
     }
 
-    public static class Row {
+    public static class Row implements Comparable<Row> {
         private final Entry rootEntry;
         private final Map<String, Table.Row> rows;
+        private final Comparator<Row> comparator;
 
-        private Row(TableTemplate rootTable,  Map<String, Table.Row> rows) {
+        private Row(TableTemplate rootTable,  Map<String, Table.Row> rows, Comparator<Row> comparator) {
+            this.comparator = comparator;
             this.rows = rows;
             rootEntry = fillEntry(rootTable);
         }
@@ -152,12 +163,16 @@ public class Environment implements Iterable<Long> {
             return entry;
         }
 
-        public String getValue(String tableName, String fieldName) {
-            return rows.get(tableName).getValue(fieldName);
+        public String getValue(List<String> fieldChain) {
+            return rootEntry.getRow(fieldChain.subList(0, fieldChain.size() - 1)).getValue(fieldChain.get(fieldChain.size() - 1));
         }
 
-        public void setValue(String tableName, String fieldName, String value) {
-            rows.get(tableName).setValue(fieldName, value);
+        public String getValue(String fieldChain) {
+            return getValue(Arrays.asList(fieldChain.split("\\.")));
+        }
+
+        public void setValue(List<String> fieldChain, String value) {
+            rootEntry.getRow(fieldChain.subList(0, fieldChain.size() - 1)).setValue(fieldChain.get(fieldChain.size() - 1), value);
         }
 
         public JsonObject toJson() {
@@ -175,6 +190,11 @@ public class Environment implements Iterable<Long> {
             return json;
         }
 
+        @Override
+        public int compareTo(Row o) {
+            return comparator.compare(this, o);
+        }
+
         private static class Entry {
             public final TableTemplate table;
             public final Table.Row row;
@@ -184,6 +204,13 @@ public class Environment implements Iterable<Long> {
                 this.connection = new HashMap<>();
                 this.table = table;
                 this.row = row;
+            }
+
+            public Table.Row getRow(List<String> fieldChain) {
+                if (fieldChain.size() == 0) {
+                    return row;
+                }
+                return connection.get(fieldChain.get(0)).getRow(fieldChain.stream().skip(1).collect(Collectors.toList()));
             }
         }
 
@@ -246,8 +273,15 @@ public class Environment implements Iterable<Long> {
                 return builders.values().stream().map(Table.Row.Builder::checkBuilderValidity).filter(x -> !x.isEmpty()).findFirst().orElse("");
             }
 
-            public Row build() {
-                return new Row(rootTable, builders.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, x -> x.getValue().build())));
+            public Row build(long id, Comparator<Row> comparator) {
+                for (Table.Row.Builder builder : builders.values()) {
+                    for (FieldTemplate field : builder) {
+                        if (field.relativeTable != null) {
+                            builder.setField(field.name, Long.toString(id));
+                        }
+                    }
+                }
+                return new Row(rootTable, builders.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, x -> x.getValue().build())), comparator);
             }
 
             @Override
@@ -256,7 +290,7 @@ public class Environment implements Iterable<Long> {
             }
 
             private class BuilderIterator implements Iterator<String> {
-                private final List<Iterator<FieldTemplate>> iterators = new ArrayList<>() {{ add(rootTable.getFields().iterator()); }};
+                private final List<Iterator<FieldTemplate>> iterators = new ArrayList<>() {{ add(rootTable.getFields().stream().filter(x -> x.fieldGeneration == null).iterator()); }};
                 private final List<String> fieldChain = new ArrayList<>();
 
                 @Override
@@ -277,10 +311,9 @@ public class Environment implements Iterable<Long> {
                     if (field.relativeTable != null) {
                         iterators.add(field.relativeTable.getFields().iterator());
                         fieldChain.add(field.name);
-                        return String.join(".", fieldChain);
+                        field = iterators.get(iterators.size() - 1).next();
                     }
                     return Stream.of(fieldChain, Arrays.asList(field.name)).flatMap(Collection::stream).collect(Collectors.joining("."));
-
                 }
             }
         }

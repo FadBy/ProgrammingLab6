@@ -1,18 +1,19 @@
 package file_data;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
-public class Console implements Input, Output, Errput {
+public class Console implements Input, Output {
     private final Scanner scanner = new Scanner(System.in);
 
-    @Override
+
     public void printException(Exception exception) {
         printException(exception.getMessage());
     }
 
-    @Override
+
     public void printException(String message) {
         System.out.println("Error: " + message);
     }
@@ -38,6 +39,11 @@ public class Console implements Input, Output, Errput {
         return text;
     }
 
+    @Override
+    public boolean isContinuing() {
+        return true;
+    }
+
     public String nextLine(String inputRequest) {
         System.out.print(inputRequest);
         return nextLine();
@@ -49,7 +55,8 @@ public class Console implements Input, Output, Errput {
     }
 
     @Override
-    public void printRequest(String line) {
-        System.out.print(line);
+    public String makeRequest(String request, Input input) throws IOException {
+        System.out.print(request);
+        return input.nextLine();
     }
 }

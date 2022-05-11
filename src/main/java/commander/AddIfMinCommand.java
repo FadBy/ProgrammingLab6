@@ -2,14 +2,17 @@ package commander;
 
 import application.Environment;
 import exceptions.IncorrectCommandException;
-import file_data.Errput;
 import file_data.Input;
 import file_data.Output;
 
+import java.io.IOException;
 import java.util.List;
 
-public class AddIfMinCommand implements Command {
-    public AddIfMinCommand() {
+public class AddIfMinCommand implements CreatingCommand {
+    private final Environment environment;
+
+    public AddIfMinCommand(Environment environment) {
+        this.environment = environment;
     }
 
     @Override
@@ -23,7 +26,15 @@ public class AddIfMinCommand implements Command {
     }
 
     @Override
-    public void execute(List<String> args, Input input, Output output, Errput errput) throws IncorrectCommandException {
-
+    public void execute(List<String> args, Input input, Output output) throws IncorrectCommandException, IOException {
+        Environment.Row.Builder builder = buildBuilder(environment, input, output);
+        long id = environment.addRow(builder);
+        Environment.Row newRow = environment.getRow(id);
+        for (long rowId : environment) {
+            if (newRow.compareTo(environment.getRow(rowId)) > 0) {
+                environment.removeById(id);
+                break;
+            }
+        }
     }
 }

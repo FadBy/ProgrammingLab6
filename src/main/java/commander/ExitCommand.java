@@ -1,7 +1,6 @@
 package commander;
 
 import application.Application;
-import file_data.Errput;
 import file_data.Input;
 import file_data.Output;
 
@@ -25,7 +24,7 @@ public class ExitCommand implements Command {
     }
 
     @Override
-    public void execute(List<String> args, Input input, Output output, Errput errput) {
+    public void execute(List<String> args, Input input, Output output) {
         application.exit();
     }
 }

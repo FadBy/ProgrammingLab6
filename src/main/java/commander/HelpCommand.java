@@ -1,6 +1,5 @@
 package commander;
 
-import file_data.Errput;
 import file_data.Input;
 import file_data.Output;
 
@@ -25,7 +24,7 @@ public class HelpCommand implements Command {
 
 
     @Override
-    public void execute(List<String> args, Input input, Output output, Errput errput) {
+    public void execute(List<String> args, Input input, Output output) {
         for (Map.Entry<String, String> command : commander.getCommandsInfo().entrySet()) {
             output.printResult(command.getKey() + ": " + command.getValue());
         }

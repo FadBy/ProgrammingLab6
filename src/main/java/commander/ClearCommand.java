@@ -1,7 +1,6 @@
 package commander;
 
 import application.Environment;
-import file_data.Errput;
 import file_data.Input;
 import file_data.Output;
 
@@ -24,7 +23,7 @@ public class ClearCommand implements Command {
     }
 
     @Override
-    public void execute(List<String> args, Input input, Output output, Errput errput) {
+    public void execute(List<String> args, Input input, Output output) {
         environment.clear();
     }
 }

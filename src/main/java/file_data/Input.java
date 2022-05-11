@@ -1,6 +1,9 @@
 package file_data;
 
+import java.io.IOException;
+
 public interface Input {
     boolean hasNextLine();
-    String nextLine();
+    String nextLine() throws IOException;
+    boolean isContinuing();
 }

@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 public class CommandHistory {
     private final List<String> banList = new ArrayList<>(Arrays.asList("help", "history"));
-    public final List<String> history = new ArrayList<>();
+    private final List<String> history = new ArrayList<>();
 
     public void addCommand(String command) {
         if (!banList.contains(command)) {

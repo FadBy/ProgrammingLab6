@@ -15,6 +15,9 @@ public class TableTemplate {
     }
 
     public FieldTemplate getField(String fieldName) {
+        if (!fields.containsKey(fieldName)) {
+            throw new ApplicationRuntimeException(fieldName + " isn't contained in " + name + "TableTemplate");
+        }
         return fields.get(fieldName);
     }
 
