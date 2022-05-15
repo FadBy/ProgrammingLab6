@@ -14,6 +14,7 @@ public class Environment implements Iterable<Long> {
     private final Map<TableTemplate, Table> tables = new LinkedHashMap<>();
     private final Map<String, TableTemplate> templates = new LinkedHashMap<>();
     private final Map<Long, Row> rows = new TreeMap<>();
+    private Comparator<Row> comparator;
 
     private long nextId = 0;
     public String rootTable;
@@ -27,8 +28,9 @@ public class Environment implements Iterable<Long> {
         return nextId++;
     }
 
-    public void setTables(LocalDateTime creationDate, String rootTable, List<TableTemplate> templates) {
+    public void setTables(LocalDateTime creationDate, Comparator<Row> comparator, String rootTable, List<TableTemplate> templates) {
         this.creationDate = creationDate;
+        this.comparator = comparator;
         this.tables.clear();
         this.tables.putAll(templates.stream().collect(Collectors.toMap(x -> x, x -> new Table())));
         this.templates.clear();
@@ -49,25 +51,11 @@ public class Environment implements Iterable<Long> {
         if (!builder.checkBuilderValidity().isEmpty()) {
             throw new ApplicationRuntimeException("Attempt to add invalid row");
         }
-        Row row = builder.build(id);
+        Row row = builder.build(id, comparator);
         for (Table.Row.Builder tableBuilder : builder.builders.values()) {
             getTable(tableBuilder.getTableName()).addRow(id, row.rows.get(tableBuilder.getTableName()));
         }
         rows.put(id, row);
-    }
-
-    public int compareRowsByField(long rowId1, long rowId2, String fieldChain) {
-        FieldTemplate field = rows.get(rowId1).getFieldTemplate(fieldChain);
-        if (field.relativeTable != null) {
-            List<String> chain = Row.parseToList(fieldChain);
-            return compareRowsByField(rowId1, rowId2, chain + "." + field.relativeTable.comparisonField);
-        } else {
-            return field.type.getComparator().compare(rows.get(rowId1).getValue(fieldChain), rows.get(rowId2).getValue(fieldChain));
-        }
-    }
-
-    public int compareRowsByField(long rowId1, long rowId2) {
-        return compareRowsByField(rowId1, rowId2, templates.get(rootTable).comparisonField);
     }
 
     private Table getTable(String tableName) {
@@ -89,10 +77,10 @@ public class Environment implements Iterable<Long> {
     }
 
     public void removeById(long id) {
+        rows.remove(id);
         if (!getTable(rootTable).containsId(id)) {
             throw new ApplicationRuntimeException(id + "wasn't found in environment");
         }
-        rows.remove(id);
         for (Table table : tables.values()) {
             table.removeRow(id);
         }
@@ -154,11 +142,13 @@ public class Environment implements Iterable<Long> {
         return rows.keySet().iterator();
     }
 
-    public static class Row {
+    public static class Row implements Comparable<Row> {
         private final Entry rootEntry;
         private final Map<String, Table.Row> rows;
+        private final Comparator<Row> comparator;
 
-        private Row(TableTemplate rootTable,  Map<String, Table.Row> rows) {
+        private Row(TableTemplate rootTable,  Map<String, Table.Row> rows, Comparator<Row> comparator) {
+            this.comparator = comparator;
             this.rows = rows;
             rootEntry = fillEntry(rootTable);
         }
@@ -173,25 +163,16 @@ public class Environment implements Iterable<Long> {
             return entry;
         }
 
-        public FieldTemplate getFieldTemplate(String fieldChain) {
-            List<String> fieldChainList = parseToList(fieldChain);
-            return rootEntry.getEntry(fieldChainList).table.getField(fieldChainList.get(fieldChainList.size() - 1));
-        }
-
-        private static List<String> parseToList(String fieldChain) {
-            return Arrays.asList(fieldChain.split("\\."));
-        }
-
         public String getValue(List<String> fieldChain) {
-            return rootEntry.getEntry(fieldChain.subList(0, fieldChain.size() - 1)).row.getValue(fieldChain.get(fieldChain.size() - 1));
+            return rootEntry.getRow(fieldChain.subList(0, fieldChain.size() - 1)).getValue(fieldChain.get(fieldChain.size() - 1));
         }
 
         public String getValue(String fieldChain) {
-            return getValue(parseToList(fieldChain));
+            return getValue(Arrays.asList(fieldChain.split("\\.")));
         }
 
         public void setValue(List<String> fieldChain, String value) {
-            rootEntry.getEntry(fieldChain.subList(0, fieldChain.size() - 1)).row.setValue(fieldChain.get(fieldChain.size() - 1), value);
+            rootEntry.getRow(fieldChain.subList(0, fieldChain.size() - 1)).setValue(fieldChain.get(fieldChain.size() - 1), value);
         }
 
         public JsonObject toJson() {
@@ -209,6 +190,11 @@ public class Environment implements Iterable<Long> {
             return json;
         }
 
+        @Override
+        public int compareTo(Row o) {
+            return comparator.compare(this, o);
+        }
+
         private static class Entry {
             public final TableTemplate table;
             public final Table.Row row;
@@ -220,15 +206,11 @@ public class Environment implements Iterable<Long> {
                 this.row = row;
             }
 
-            public Entry getEntry(List<String> fieldChain) {
+            public Table.Row getRow(List<String> fieldChain) {
                 if (fieldChain.size() == 0) {
-                    return this;
+                    return row;
                 }
-                return connection.get(fieldChain.get(0)).getEntry(fieldChain.stream().skip(1).collect(Collectors.toList()));
-            }
-
-            public Entry getEntry(String fieldChain) {
-                return getEntry(parseToList(fieldChain));
+                return connection.get(fieldChain.get(0)).getRow(fieldChain.stream().skip(1).collect(Collectors.toList()));
             }
         }
 
@@ -291,7 +273,7 @@ public class Environment implements Iterable<Long> {
                 return builders.values().stream().map(Table.Row.Builder::checkBuilderValidity).filter(x -> !x.isEmpty()).findFirst().orElse("");
             }
 
-            public Row build(long id) {
+            public Row build(long id, Comparator<Row> comparator) {
                 for (Table.Row.Builder builder : builders.values()) {
                     for (FieldTemplate field : builder) {
                         if (field.relativeTable != null) {
@@ -299,7 +281,7 @@ public class Environment implements Iterable<Long> {
                         }
                     }
                 }
-                return new Row(rootTable, builders.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, x -> x.getValue().build())));
+                return new Row(rootTable, builders.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, x -> x.getValue().build())), comparator);
             }
 
             @Override

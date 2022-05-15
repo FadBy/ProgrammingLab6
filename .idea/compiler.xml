@@ -1,9 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+<<<<<<< HEAD
+        <module name="server" />
+      </profile>
+    </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="client" target="11" />
       <module name="server" target="11" />
+      <module name="server1" target="11" />
     </bytecodeTargetLevel>
+=======
+        <module name="ProgLab6" />
+      </profile>
+    </annotationProcessing>
+>>>>>>> parent of 5b28cd7 (Lab5 done)
   </component>
 </project>

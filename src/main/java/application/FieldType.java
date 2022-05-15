@@ -21,7 +21,6 @@ public enum FieldType {
         switch (this) {
             case String: check = true; break;
             case Double: check = true; try { java.lang.Double.parseDouble(value); } catch (NumberFormatException e) { check = false; } break;
-            case Integer: check = true; try { java.lang.Integer.parseInt(value); } catch (NumberFormatException e) { check = false; } break;
             case Long: check = true; try { java.lang.Long.parseLong(value); } catch (NumberFormatException e) { check = false; } break;
             default: throw new ApplicationRuntimeException("This fieldType wasn't considered");
         }
@@ -29,15 +28,5 @@ public enum FieldType {
             return "must be " + this.name();
         }
         return "";
-    }
-
-    public Comparator<String> getComparator() {
-        switch (this) {
-            case String: return Comparator.comparing(x -> x);
-            case Double: return Comparator.comparing(java.lang.Double::parseDouble);
-            case Integer: return Comparator.comparing(java.lang.Integer::parseInt);
-            case Long: return Comparator.comparing(java.lang.Long::parseLong);
-            default: throw new ApplicationRuntimeException("This fieldType wasn't considered");
-        }
     }
 }

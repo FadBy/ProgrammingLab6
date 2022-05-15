@@ -30,9 +30,10 @@ public class RemoveLowerCommand implements CreatingCommand {
     @Override
     public void execute(List<String> args, Input input, Output output) throws IncorrectCommandException, IOException {
         long id = environment.addRow(buildBuilder(environment, input, output));
+        Environment.Row row = environment.getRow(id);
         Set<Long> toDelete = new HashSet<>();
         for (long rowId : environment) {
-            if (environment.compareRowsByField(rowId, id) < 0) {
+            if (environment.getRow(rowId).compareTo(row) < 0) {
                 toDelete.add(rowId);
             }
         }
