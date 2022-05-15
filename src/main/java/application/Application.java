@@ -48,24 +48,38 @@ public class Application {
         commander.setCommands(commands);
 
         Label isNotNull = new MonoLabel("can't be null", Objects::nonNull);
-        Label isNotEmpty = new MonoLabel("can't be empty", String::isEmpty);
-        Label isIdProductUnique = new BiLabel("must be unique", (String x, List<String> lst) -> !lst.contains(x), environment, "Product", "id");
-        Label isPartNumberUnique = new BiLabel("must be unique", (String x, List<String> lst) -> !lst.contains(x), environment, "Product", "partNumber");
-        Label isIdOrganizationUnique = new BiLabel("must be unique", (String x, List<String> lst) -> !lst.contains(x), environment, "Organization", "id");
-        Label isMoreThanZero = new MonoLabel("must be more than zero", x -> Double.parseDouble(x) > 0);
-        Label isMaxSix = new MonoLabel("must be more than six", x -> Double.parseDouble(x) <= 6);
+        Label isNotEmpty = new MonoLabel("can't be empty", x -> x != null && !x.isEmpty());
+        Label isIdProductUnique = new BiLabel("must be unique", (String x, List<String> lst) -> x != null && !lst.contains(x), environment, "Product", "id");
+        Label isPartNumberUnique = new BiLabel("must be unique", (String x, List<String> lst) -> x != null && !lst.contains(x), environment, "Product", "partNumber");
+        Label isIdOrganizationUnique = new BiLabel("must be unique", (String x, List<String> lst) -> x != null && !lst.contains(x), environment, "Organization", "id");
+        Label isMoreThanZero = new MonoLabel("must be more than zero", x -> x != null && Double.parseDouble(x) > 0);
+        Label isMaxSix = new MonoLabel("must be more than six", x -> x != null && Double.parseDouble(x) <= 6);
 
         FieldTemplate x = new FieldTemplate("x", FieldType.Long, Arrays.asList(isNotNull, isMaxSix));
         FieldTemplate y = new FieldTemplate("y", FieldType.Long, Arrays.asList(isNotNull));
 
-        TableTemplate coordinateTemplate = new TableTemplate("Coordinates", Arrays.asList(x, y));
+        TableTemplate coordinateTemplate = new TableTemplate("Coordinates", Arrays.asList(x, y), "x");
+
+        FieldTemplate idOrg = new FieldTemplate("id", FieldType.Integer, Arrays.asList(isMoreThanZero, isIdProductUnique), () -> environment.getAutoIncrement("Organization", "id"));
+        FieldTemplate nameOrg = new FieldTemplate("name", FieldType.String, Arrays.asList(isNotNull, isNotEmpty));
+        FieldTemplate fullName = new FieldTemplate("fullName", FieldType.String, Arrays.asList());
+        FieldTemplate annualTurnover = new FieldTemplate("annualTurnover", FieldType.Long, Arrays.asList(isMoreThanZero));
+        FieldTemplate employeesCount = new FieldTemplate("employeesCount", FieldType.Long, Arrays.asList(isMoreThanZero));
+
+        TableTemplate organization = new TableTemplate("Organization", Arrays.asList(idOrg, nameOrg, fullName, annualTurnover, employeesCount), "name");
 
         FieldTemplate id = new FieldTemplate("id", FieldType.Long, Arrays.asList(isNotNull, isIdProductUnique, isMoreThanZero), () -> environment.getAutoIncrement("Product", "id"));
+        FieldTemplate nameProduct = new FieldTemplate("name", FieldType.String, Arrays.asList(isNotNull, isNotEmpty));
         FieldTemplate coordinates = new FieldTemplate("coordinates", FieldType.Long, Arrays.asList(isNotNull), coordinateTemplate);
+        FieldTemplate creationDate = new FieldTemplate("creationDate", FieldType.String, Arrays.asList(isNotNull), () -> LocalDateTime.now().toString());
+        FieldTemplate price = new FieldTemplate("price", FieldType.Double, Arrays.asList(isMoreThanZero));
+        FieldTemplate partNumber = new FieldTemplate("partNumber", FieldType.String, Arrays.asList(isNotEmpty, isPartNumberUnique));
+        FieldTemplate manufactureCost = new FieldTemplate("manufactureCost", FieldType.Double, Arrays.asList(isNotNull));
+        FieldTemplate manufacturer = new FieldTemplate("manufacturer", FieldType.Long, Arrays.asList(), organization);
 
-        TableTemplate productTemplate = new TableTemplate("Product", Arrays.asList(id, coordinates));
+        TableTemplate productTemplate = new TableTemplate("Product", Arrays.asList(id, nameProduct, coordinates, creationDate, price, partNumber, manufactureCost, manufacturer), "coordinates.x");
 
-        environment.setTables(LocalDateTime.now(), Comparator.comparing(z -> Long.parseLong(z.getValue("coordinates.x"))), "Product", Arrays.asList(productTemplate, coordinateTemplate));
+        environment.setTables(LocalDateTime.now(),"Product", Arrays.asList(productTemplate, coordinateTemplate, organization));
     }
 
     private void programCycle() {

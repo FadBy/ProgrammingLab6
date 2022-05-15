@@ -8,8 +8,10 @@ import java.util.stream.Collectors;
 public class TableTemplate {
     private final Map<String, FieldTemplate> fields = new LinkedHashMap<>();
     public final String name;
+    public final String comparisonField;
 
-    public TableTemplate(String name, List<FieldTemplate> fields) {
+    public TableTemplate(String name, List<FieldTemplate> fields, String comparisonField) {
+        this.comparisonField = comparisonField;
         this.name = name;
         this.fields.putAll(fields.stream().collect(Collectors.toMap(x -> x.name, x -> x)));
     }

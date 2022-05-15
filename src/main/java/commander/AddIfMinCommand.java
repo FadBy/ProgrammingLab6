@@ -31,7 +31,7 @@ public class AddIfMinCommand implements CreatingCommand {
         long id = environment.addRow(builder);
         Environment.Row newRow = environment.getRow(id);
         for (long rowId : environment) {
-            if (newRow.compareTo(environment.getRow(rowId)) > 0) {
+            if (environment.compareRowsByField(id, rowId) > 0) {
                 environment.removeById(id);
                 break;
             }

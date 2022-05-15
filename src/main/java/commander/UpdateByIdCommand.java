@@ -36,6 +36,6 @@ public class UpdateByIdCommand implements CreatingCommand {
         } catch (NumberFormatException e) {
             throw new IncorrectCommandException("id must be long");
         }
-        environment.updateRow(id, buildBuilder(environment, input, output));
+        environment.updateRow(environment.findId(environment.rootTable, "id", Long.toString(id)), buildBuilder(environment, input, output));
     }
 }
