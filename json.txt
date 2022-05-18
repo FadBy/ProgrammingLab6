@@ -1,0 +1,1 @@
+[{"price":"34","manufactureCost":"34","name":"3","partNumber":"3","id":"1","creationDate":"2022-05-17T15:16:50.455","coordinates":{"x":"3","y":"3"},"manufacturer":{"employeesCount":"3","name":"3","fullName":"33","annualTurnover":"3","id":"1"}}]

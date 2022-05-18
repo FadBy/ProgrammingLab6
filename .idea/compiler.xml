@@ -6,19 +6,10 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-<<<<<<< HEAD
         <module name="server" />
+        <module name="client" />
+        <module name="general" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="client" target="11" />
-      <module name="server" target="11" />
-      <module name="server1" target="11" />
-    </bytecodeTargetLevel>
-=======
-        <module name="ProgLab6" />
-      </profile>
-    </annotationProcessing>
->>>>>>> parent of 5b28cd7 (Lab5 done)
   </component>
 </project>
