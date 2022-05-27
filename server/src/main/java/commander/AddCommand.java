@@ -2,9 +2,8 @@ package commander;
 
 import environment.Environment;
 import exceptions.IncorrectCommandException;
-import validation.Input;
-import validation.Output;
-import validation.TableTemplate;
+import data.Input;
+import data.Output;
 
 import java.io.IOException;
 import java.util.*;
@@ -27,7 +26,12 @@ public class AddCommand implements Command {
     }
 
     @Override
-    public void execute(List<String> args, Map<String, Map<String, String>> objectBuilder, Input input, Output output) throws IncorrectCommandException, IOException {
+    public boolean getIsClientCommand() {
+        return true;
+    }
+
+    @Override
+    public void execute(List<String> args, Map<String, Map<String, String>> objectBuilder, Output output) throws IncorrectCommandException, IOException {
         environment.addRow(objectBuilder);
     }
 }

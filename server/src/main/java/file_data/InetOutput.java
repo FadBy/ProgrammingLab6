@@ -1,11 +1,10 @@
 package file_data;
 
-import validation.Input;
-import validation.Output;
+import data.Input;
+import data.Output;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 public class InetOutput implements Output {
     private final ByteArrayOutputStream byteStream = new ByteArrayOutputStream();

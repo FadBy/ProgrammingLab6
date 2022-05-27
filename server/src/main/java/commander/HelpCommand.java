@@ -2,9 +2,8 @@ package commander;
 
 
 import exceptions.IncorrectCommandException;
-import validation.Input;
-import validation.Output;
-import validation.TableTemplate;
+import data.Input;
+import data.Output;
 
 import java.io.IOException;
 import java.util.List;
@@ -27,9 +26,16 @@ public class HelpCommand implements Command {
     }
 
     @Override
-    public void execute(List<String> args, Map<String, Map<String, String>> objectBuilder, Input input, Output output) throws IncorrectCommandException, IOException {
+    public void execute(List<String> args, Map<String, Map<String, String>> objectBuilder, Output output) throws IncorrectCommandException, IOException {
         for (Map.Entry<String, String> command : commander.getCommandsInfo().entrySet()) {
-            output.printResult(command.getKey() + ": " + command.getValue());
+            if (commander.getIsClientCommand(command.getKey())) {
+                output.printResult(command.getKey() + ": " + command.getValue());
+            }
         }
+    }
+
+    @Override
+    public boolean getIsClientCommand() {
+        return true;
     }
 }

@@ -1,7 +1,7 @@
 package file_data;
 
 import exceptions.ApplicationRuntimeException;
-import validation.Input;
+import data.Input;
 
 import java.io.*;
 import java.nio.file.Path;

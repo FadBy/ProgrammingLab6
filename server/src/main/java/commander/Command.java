@@ -1,9 +1,8 @@
 package commander;
 
 import exceptions.IncorrectCommandException;
-import validation.Input;
-import validation.Output;
-import validation.TableTemplate;
+import data.Input;
+import data.Output;
 
 import java.io.IOException;
 import java.util.List;
@@ -12,6 +11,7 @@ import java.util.Map;
 public interface Command {
     String getName();
     String getDescription();
+    boolean getIsClientCommand();
 
-    void execute(List<String> args, Map<String, Map<String, String>> objectBuilder, Input input, Output output) throws IncorrectCommandException, IOException;
+    void execute(List<String> args, Map<String, Map<String, String>> objectBuilder, Output output) throws IncorrectCommandException, IOException;
 }

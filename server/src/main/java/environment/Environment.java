@@ -2,21 +2,21 @@ package environment;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.internal.LinkedTreeMap;
 import exceptions.ApplicationRuntimeException;
-import validation.FieldTemplate;
-import validation.FieldType;
-import validation.TableTemplate;
+import template.FieldTemplate;
+import template.FieldType;
+import template.TableTemplate;
 
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Environment implements Iterable<Long> {
     private final Map<TableTemplate, Table> tables = new LinkedHashMap<>();
     private final Map<String, TableTemplate> templates = new LinkedHashMap<>();
-    private final Map<Long, Row> rows = new TreeMap<>();
+    private final Map<Long, Row> rows = new LinkedTreeMap<>();
 
     private long nextId = 0;
     public String rootTable;

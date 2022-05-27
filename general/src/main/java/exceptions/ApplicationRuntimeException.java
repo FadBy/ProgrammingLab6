@@ -1,9 +1,6 @@
 package exceptions;
 
 public class ApplicationRuntimeException extends RuntimeException {
-    public ApplicationRuntimeException() {
-    }
-
     public ApplicationRuntimeException(String message) {
         super(message);
     }

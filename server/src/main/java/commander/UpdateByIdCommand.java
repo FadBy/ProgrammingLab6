@@ -2,9 +2,8 @@ package commander;
 
 import environment.Environment;
 import exceptions.IncorrectCommandException;
-import validation.Input;
-import validation.Output;
-import validation.TableTemplate;
+import data.Input;
+import data.Output;
 
 import java.io.IOException;
 import java.util.List;
@@ -28,7 +27,7 @@ public class UpdateByIdCommand implements Command {
     }
 
     @Override
-    public void execute(List<String> args, Map<String, Map<String, String>> objectBuilder, Input input, Output output) throws IncorrectCommandException, IOException {
+    public void execute(List<String> args, Map<String, Map<String, String>> objectBuilder, Output output) throws IncorrectCommandException, IOException {
         if (args.size() == 1) {
             throw new IncorrectCommandException(getName() + "must have id argument");
         }
@@ -39,5 +38,10 @@ public class UpdateByIdCommand implements Command {
             throw new IncorrectCommandException("id must be long");
         }
         environment.updateRow(environment.findId(environment.rootTable, "id", Long.toString(id)), objectBuilder);
+    }
+
+    @Override
+    public boolean getIsClientCommand() {
+        return true;
     }
 }

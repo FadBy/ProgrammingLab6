@@ -1,13 +1,14 @@
 package commander;
 
 import exceptions.IncorrectCommandException;
-import validation.Input;
-import validation.Output;
-import validation.TableTemplate;
+import data.Input;
+import data.Output;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class HistoryCommand implements Command {
     private final CommandHistory history;
@@ -27,9 +28,12 @@ public class HistoryCommand implements Command {
     }
 
     @Override
-    public void execute(List<String> args, Map<String, Map<String, String>> objectBuilder, Input input, Output output) throws IncorrectCommandException, IOException {
-        for (String text : history.getHistory(15)) {
-            output.printResult(text);
-        }
+    public void execute(List<String> args, Map<String, Map<String, String>> objectBuilder, Output output) throws IncorrectCommandException, IOException {
+        output.printResult(String.join("\n", history.getHistory(15)));
+    }
+
+    @Override
+    public boolean getIsClientCommand() {
+        return true;
     }
 }

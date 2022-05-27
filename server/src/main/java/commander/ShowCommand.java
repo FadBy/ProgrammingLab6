@@ -1,10 +1,11 @@
 package commander;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import environment.Environment;
 import exceptions.IncorrectCommandException;
-import validation.Input;
-import validation.Output;
-import validation.TableTemplate;
+import data.Input;
+import data.Output;
 
 import java.io.IOException;
 import java.util.List;
@@ -28,8 +29,14 @@ public class ShowCommand implements Command {
     }
 
     @Override
-    public void execute(List<String> args, Map<String, Map<String, String>> objectBuilder, Input input, Output output) throws IncorrectCommandException, IOException {
-        output.printResult(environment.toJson().toString());
+    public void execute(List<String> args, Map<String, Map<String, String>> objectBuilder, Output output) throws IncorrectCommandException, IOException {
+        for (JsonElement json : environment.toJson()) {
+            output.printResult(json.toString());
+        }
     }
 
+    @Override
+    public boolean getIsClientCommand() {
+        return true;
+    }
 }

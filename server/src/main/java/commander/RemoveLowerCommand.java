@@ -2,9 +2,8 @@ package commander;
 
 import environment.Environment;
 import exceptions.IncorrectCommandException;
-import validation.Input;
-import validation.Output;
-import validation.TableTemplate;
+import data.Input;
+import data.Output;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -30,7 +29,7 @@ public class RemoveLowerCommand implements Command {
     }
 
     @Override
-    public void execute(List<String> args, Map<String, Map<String, String>> objectBuilder, Input input, Output output) throws IncorrectCommandException, IOException {
+    public void execute(List<String> args, Map<String, Map<String, String>> objectBuilder, Output output) throws IncorrectCommandException, IOException {
         long id = environment.addRow(objectBuilder);
         Set<Long> toDelete = new HashSet<>();
         for (long rowId : environment) {
@@ -42,5 +41,10 @@ public class RemoveLowerCommand implements Command {
             environment.removeById(rowId);
         }
         environment.removeById(id);
+    }
+
+    @Override
+    public boolean getIsClientCommand() {
+        return true;
     }
 }

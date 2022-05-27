@@ -2,9 +2,8 @@ package commander;
 
 import environment.Environment;
 import exceptions.IncorrectCommandException;
-import validation.Input;
-import validation.Output;
-import validation.TableTemplate;
+import data.Input;
+import data.Output;
 
 import java.io.IOException;
 import java.util.List;
@@ -28,7 +27,12 @@ public class InfoCommand implements Command {
     }
 
     @Override
-    public void execute(List<String> args, Map<String, Map<String, String>> objectBuilder, Input input, Output output) throws IncorrectCommandException, IOException {
+    public void execute(List<String> args, Map<String, Map<String, String>> objectBuilder, Output output) throws IncorrectCommandException, IOException {
         output.printResult(environment.getInfo());
+    }
+
+    @Override
+    public boolean getIsClientCommand() {
+        return true;
     }
 }

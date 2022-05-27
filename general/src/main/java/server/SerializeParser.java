@@ -5,22 +5,18 @@ import exceptions.ApplicationException;
 import java.io.*;
 
 public class SerializeParser {
-    public static Serializable toSerializable(byte[] bytes) throws ApplicationException {
+    public static Serializable toSerializable(byte[] bytes) throws IOException, ClassNotFoundException {
         ByteArrayInputStream byteStream = new ByteArrayInputStream(bytes);
         try (ObjectInputStream input = new ObjectInputStream(byteStream)){
             return (Serializable) input.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            throw new ApplicationException(e.getMessage() + ": couldn't serialize");
         }
     }
 
-    public static byte[] fromSerializable(Serializable ser) throws ApplicationException {
+    public static byte[] fromSerializable(Serializable ser) throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        try (ObjectOutputStream objectStream = new ObjectOutputStream(outputStream)){
+        try (ObjectOutputStream objectStream = new ObjectOutputStream(outputStream)) {
             objectStream.writeObject(ser);
             return outputStream.toByteArray();
-        } catch (IOException e) {
-            throw new ApplicationException(e.getMessage() + ": couldn't serialize");
         }
     }
 }
